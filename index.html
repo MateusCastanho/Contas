@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minhas Finanças</title>
+    <style>
+        /* Estilo iOS / iPhone */
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --primary: #007aff;
+            --text-main: #1c1c1e;
+            --text-muted: #8e8e93;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --tab-bg: #f8f8f8;
+            --border-color: #e5e5ea;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* --- TELA DE LOGIN --- */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        #login-screen h1 { margin-bottom: 10px; font-size: 26px; text-align: center; }
+        #login-screen p { color: var(--text-muted); margin-bottom: 25px; text-align: center; }
+
+        input[type="password"] {
+            width: 80%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            background-color: #fff;
+        }
+
+        input[type="password"]:focus { border-color: var(--primary); }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.7; }
+
+        /* --- APLICATIVO PRINCIPAL --- */
+        #app-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Áreas de conteúdo roláveis */
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 20px 100px 20px; /* Espaço extra no fim para a barra não cobrir */
+        }
+        .tab-content.active { display: block; }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 0 5px;
+        }
+
+        .header-top h2 { margin: 0; font-size: 18px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .cloud-status { font-size: 12px; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 4px;}
+        .cloud-status.syncing { color: var(--text-muted); }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 5px 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .input-group:last-child { border-bottom: none; }
+
+        .input-group label { font-size: 16px; font-weight: 500; }
+        .input-group input {
+            width: 120px;
+            padding: 5px;
+            border: none;
+            text-align: right;
+            font-size: 16px;
+            color: var(--text-main);
+            outline: none;
+            background: transparent;
+        }
+        .input-group input::placeholder { color: var(--text-muted); }
+
+        /* --- ABA DIÁRIA (Adicionar Gastos) --- */
+        .add-expense-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .add-expense-box input, .add-expense-box select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+            outline: none;
+            background-color: white;
+            font-family: inherit;
+        }
+        .add-expense-box input:focus, .add-expense-box select:focus { border-color: var(--primary); }
+
+        .expense-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .expense-item:last-child { border-bottom: none; }
+        
+        .expense-info { display: flex; flex-direction: column; }
+        .expense-desc { font-weight: 500; font-size: 16px; }
+        .expense-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        
+        .expense-actions { display: flex; align-items: center; gap: 10px; }
+        .expense-val { font-weight: 600; color: var(--text-main); }
+        .btn-del {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* --- RESUMOS --- */
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .result-row:last-child { border-bottom: none; }
+        .result-row.bold { font-weight: 700; font-size: 18px; margin-top: 5px; }
+
+        .text-danger { color: var(--danger); font-weight: 600; }
+        .text-success { color: var(--success); font-weight: 600; }
+        .text-primary { color: var(--primary); font-weight: 600; }
+
+        .mini-summary {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
+            position: relative;
+        }
+        .mini-summary h3 { margin: 0; font-size: 14px; font-weight: 500; opacity: 0.9; }
+        .mini-summary p { margin: 5px 0 0 0; font-size: 24px; font-weight: 700; }
+
+        .mini-balances { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; text-align: left; background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; }
+        .mini-balances div { display: flex; justify-content: space-between; font-size: 14px; }
+        .badge-pag { font-size: 11px; background: #e5e5ea; color: #1c1c1e; padding: 3px 6px; border-radius: 6px; margin-left: 5px; font-weight: normal; vertical-align: middle; }
+
+        /* --- BARRA DE NAVEGAÇÃO INFERIOR --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--tab-bg);
+            border-top: 1px solid #d1d1d6;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            z-index: 10;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 10px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 22px; }
+
+        /* --- MODAL CUSTOMIZADO --- */
+        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; margin-bottom: 10px; font-size: 18px; }
+        .modal-content p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+        .modal-content input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px; outline: none; font-size: 16px; font-family: inherit; }
+        .modal-content input:focus { border-color: var(--primary); }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; }
+        .modal-btn-cancel { background: #e5e5ea; color: var(--text-main); }
+        .modal-btn-confirm { background: var(--primary); color: white; }
+
+    </style>
+</head>
+<body>
+
+    <!-- MODAL CUSTOMIZADO -->
+    <div id="custom-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Título</h3>
+            <p id="modal-msg">Mensagem</p>
+            <input type="text" id="modal-input">
+            <div class="modal-buttons">
+                <button id="modal-btn-cancel" class="modal-btn modal-btn-cancel">Cancelar</button>
+                <button id="modal-btn-confirm" class="modal-btn modal-btn-confirm">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- TELA DE LOGIN -->
+        <div id="login-screen">
+            <h1>Minhas Finanças</h1>
+            <p>Digite sua senha compartilhada</p>
+            <input type="password" id="password" placeholder="Senha" inputmode="numeric">
+            <button class="btn" onclick="checkPassword()">Acessar Nuvem</button>
+            <p id="error-msg" style="color: var(--danger); display: none; margin-top:15px; font-weight: 600;">Senha incorreta!</p>
+        </div>
+
+        <!-- APLICATIVO PRINCIPAL -->
+        <div id="app-screen">
+            
+            <!-- ABA 1: DIÁRIO (Gastos do dia a dia) -->
+            <div id="tab-diario" class="tab-content active">
+                
+                <div class="mini-summary" id="mini-saldo-card">
+                    <span id="sync-status" style="position:absolute; top:15px; right:15px; font-size:11px; opacity:0.8;">☁️ Sincronizado</span>
+                    <h3>Saldo Total Disponível</h3>
+                    <p id="mini-saldo">R$ 0,00</p>
+                    <div class="mini-balances">
+                        <div><span>Dinheiro/Cartões</span> <strong id="mini-saldo-dinheiro">R$ 0,00</strong></div>
+                        <div><span>Vale Alimentação (VA)</span> <strong id="mini-saldo-va">R$ 0,00</strong></div>
+                        <div><span>Vale Refeição (VR)</span> <strong id="mini-saldo-vr">R$ 0,00</strong></div>
+                    </div>
+                </div>
+
+                <div class="header-top">
+                    <h2>Novo Gasto Diário</h2>
+                </div>
+                <div class="card add-expense-box">
+                    <select id="categoriaGasto" onchange="toggleCategoria()">
+                        <option value="" disabled selected>O que você pagou? (Selecione)</option>
+                        <option value="Mercado">🛒 Mercado/Compras</option>
+                        <option value="Padaria/Lanches">🍞 Padaria/Lanches</option>
+                        <option value="iFood/Delivery">🍔 iFood/Delivery</option>
+                        <option value="Farmácia/Saúde">💊 Farmácia/Saúde</option>
+                        <option value="Transporte/Combustível">⛽ Transporte/Combustível</option>
+                        <option value="Cabelo/Estética">✂️ Cabelo/Estética</option>
+                        <option value="Lazer/Passeio">🍿 Lazer/Passeio</option>
+                        <option value="Outros">✏️ Outros (Especificar)...</option>
+                    </select>
+                    <input type="text" id="descGastoOutros" placeholder="O que foi? (Especifique)" style="display: none;">
+                    
+                    <select id="formaPagamento">
+                        <option value="" disabled selected>Forma de Pagamento?</option>
+                        <option value="Pix/Débito">📱 Pix / Débito</option>
+                        <option value="Crédito">💳 Cartão de Crédito</option>
+                        <option value="VA">🛒 Vale Alimentação (VA)</option>
+                        <option value="VR">🍔 Vale Refeição (VR)</option>
+                    </select>
+
+                    <input type="number" id="valorGasto" placeholder="Valor (R$)" inputmode="decimal">
+                    <button class="btn" onclick="adicionarGastoDiario()">Adicionar Gasto</button>
+                </div>
+
+                <div class="header-top">
+                    <h2>Histórico do Mês</h2>
+                </div>
+                <div class="card">
+                    <ul class="expense-list" id="listaGastos">
+                        <!-- Itens vão aparecer aqui -->
+                    </ul>
+                    <div id="msgVazio" style="text-align:center; color: var(--text-muted); padding: 10px; display:none;">
+                        Nenhum gasto registrado ainda.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 2: MENSAL (Fixos) -->
+            <div id="tab-mensal" class="tab-content">
+                <div class="header-top">
+                    <h2>Rendimentos (Mês)</h2>
+                </div>
+                <div class="card">
+                    <div class="input-group">
+                        <label>Meu Salário</label>
+                        <!-- Usamos oninput para calcular na hora sem salvar, e onchange para salvar na nuvem ao sair do campo -->
+                        <input type="number" id="salario1" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                    <div class="input-group">
+                        <label>Salário Esposa</label>
+                        <input type="number" id="salario2" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                    <div class="input-group">
+                        <label>Vale Alimentação</label>
+                        <input type="number" id="va" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                    <div class="input-group">
+                        <label>Vale Refeição</label>
+                        <input type="number" id="vr" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                </div>
+
+                <div class="header-top">
+                    <h2>Despesas Fixas</h2>
+                </div>
+                <div class="card">
+                    <div class="input-group">
+                        <label>Condomínio</label>
+                        <input type="number" id="condominio" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                    <div class="input-group">
+                        <label>Internet</label>
+                        <input type="number" id="internet" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                    <div class="input-group">
+                        <label>Luz</label>
+                        <input type="number" id="luz" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                    <div class="input-group">
+                        <label>Gás</label>
+                        <input type="number" id="gas" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
+                    </div>
+                </div>
+
+                <div class="header-top">
+                    <h2>Gastos por Categoria</h2>
+                </div>
+                <div class="card" id="relatorioCategorias">
+                    <div style="text-align:center; color: var(--text-muted); padding: 10px;">
+                        Nenhum gasto registrado ainda.
+                    </div>
+                </div>
+
+                <div class="header-top">
+                    <h2>Resumo Geral do Mês</h2>
+                </div>
+                <div class="card">
+                    <div class="result-row">
+                        <span>Ganhos Totais</span>
+                        <span id="res-ganhos" class="text-success">R$ 0,00</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Dízimo (10% Salários)</span>
+                        <span id="res-dizimo" class="text-primary">R$ 0,00</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Contas Fixas</span>
+                        <span id="res-fixas">R$ 0,00</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Gastos Diários (Soma)</span>
+                        <span id="res-diarios">R$ 0,00</span>
+                    </div>
+                    <div class="result-row bold">
+                        <span>Saldo Final</span>
+                        <span id="res-saldo">R$ 0,00</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+                    <button onclick="limparTudo()" style="background: none; border: none; color: var(--text-muted); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 10px;">Zerar dados mensais (Reset)</button>
+                </div>
+            </div>
+
+            <!-- ABA 3: HISTÓRICO (Meses Anteriores) -->
+            <div id="tab-historico" class="tab-content">
+                <div class="header-top">
+                    <h2>Meses Anteriores</h2>
+                </div>
+                <div class="card">
+                    <ul class="expense-list" id="listaHistorico">
+                        <!-- Itens vão aparecer aqui -->
+                    </ul>
+                    <div id="msgHistoricoVazio" style="text-align:center; color: var(--text-muted); padding: 10px; display:none;">
+                        Nenhum mês fechado ainda.
+                    </div>
+                </div>
+                <button class="btn" onclick="fecharMes()" style="background-color: var(--success); margin-top: 10px;">Fechar Mês Atual e Salvar</button>
+            </div>
+
+            <!-- BARRA INFERIOR (TABS) -->
+            <nav class="bottom-nav">
+                <div class="nav-item active" id="btn-tab-diario" onclick="mudarAba('diario')">
+                    <span class="nav-icon">🛒</span>
+                    <span>Diário</span>
+                </div>
+                <div class="nav-item" id="btn-tab-mensal" onclick="mudarAba('mensal')">
+                    <span class="nav-icon">📅</span>
+                    <span>Mensal</span>
+                </div>
+                <div class="nav-item" id="btn-tab-historico" onclick="mudarAba('historico')">
+                    <span class="nav-icon">📚</span>
+                    <span>Histórico</span>
+                </div>
+            </nav>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT COM FIREBASE / BANCO DE DADOS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variáveis de ambiente garantidas na compilação
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let app, auth, db;
+        if (firebaseConfig) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+
+        // --- SISTEMA DE DADOS DA APLICAÇÃO ---
+        let gastosDiarios = [];
+        let historicoMeses = [];
+        let saldoAtualGlobal = 0;
+        let currentUser = null;
+        let isSyncingFromCloud = false;
+
+        // Inicia Autenticação Firebase
+        const initAuth = async () => {
+            if (!auth) return;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erro de Auth:", error);
+            }
+        };
+
+        initAuth();
+
+        // Escuta Mudanças na Autenticação e Configura Banco de Dados
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    iniciarSincronizacaoNuvem();
+                }
+            });
+        }
+
+        // --- INTEGRAÇÃO COM BANCO DE DADOS (FIRESTORE) ---
+        function getDocRef() {
+            // Usando um documento específico para os dados compartilhados desta família
+            return doc(db, 'artifacts', appId, 'public', 'data', 'financas_app_state', 'shared_data');
+        }
+
+        function iniciarSincronizacaoNuvem() {
+            if (!db || !currentUser) return;
+            
+            const docRef = getDocRef();
+            onSnapshot(docRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    isSyncingFromCloud = true;
+                    const data = snapshot.data();
+                    aplicarDadosDaNuvem(data);
+                    isSyncingFromCloud = false;
+                    
+                    const syncIcon = document.getElementById('sync-status');
+                    syncIcon.innerText = "☁️ Atualizado";
+                    syncIcon.style.color = "#fff";
+                    setTimeout(() => syncIcon.innerText = "☁️ Sincronizado", 2000);
+                }
+            }, (error) => {
+                console.error("Erro na sincronização:", error);
+            });
+        }
+
+        // --- APLICAR DADOS QUE VIERAM DO CELULAR DO PARCEIRO ---
+        function setInputSeNaoEstiverFocado(id, val) {
+            const el = document.getElementById(id);
+            // Só muda o texto se o usuário não estiver com o cursor piscando nele agora
+            if (document.activeElement !== el) {
+                el.value = val !== undefined && val !== 0 ? val : '';
+            }
+        }
+
+        function aplicarDadosDaNuvem(parse) {
+            if (parse.fixos) {
+                const f = parse.fixos;
+                setInputSeNaoEstiverFocado('salario1', f.salario1);
+                setInputSeNaoEstiverFocado('salario2', f.salario2);
+                setInputSeNaoEstiverFocado('va', f.va);
+                setInputSeNaoEstiverFocado('vr', f.vr);
+                setInputSeNaoEstiverFocado('condominio', f.condominio);
+                setInputSeNaoEstiverFocado('internet', f.internet);
+                setInputSeNaoEstiverFocado('luz', f.luz);
+                setInputSeNaoEstiverFocado('gas', f.gas);
+            } else {
+                document.querySelectorAll('#tab-mensal input[type="number"]').forEach(i => {
+                    if (document.activeElement !== i) i.value = '';
+                });
+            }
+
+            gastosDiarios = parse.diarios || [];
+            historicoMeses = parse.historico || [];
+
+            // Recalcula tudo sem enviar de volta pra nuvem
+            calcularEAtualizarTela(); 
+        }
+
+        // Função que salva alterações locais na nuvem
+        window.handleUserChange = function() {
+            const dadosSalvos = calcularEAtualizarTela();
+            
+            if (!isSyncingFromCloud && currentUser && db) {
+                const syncIcon = document.getElementById('sync-status');
+                syncIcon.innerText = "☁️ Salvando...";
+                syncIcon.style.color = "rgba(255,255,255,0.7)";
+                
+                setDoc(getDocRef(), dadosSalvos).catch(e => {
+                    console.error("Erro ao salvar", e);
+                    syncIcon.innerText = "⚠️ Erro Sync";
+                    syncIcon.style.color = "var(--danger)";
+                });
+            }
+        };
+
+        // --- SISTEMA DE MODAL ---
+        window.showModal = function(title, msg, type = 'alert', callback = null) {
+            const modal = document.getElementById('custom-modal');
+            const titleEl = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-msg');
+            const inputEl = document.getElementById('modal-input');
+            const btnCancel = document.getElementById('modal-btn-cancel');
+            const btnConfirm = document.getElementById('modal-btn-confirm');
+
+            titleEl.innerText = title;
+            msgEl.innerText = msg;
+            inputEl.value = '';
+            
+            inputEl.style.display = type === 'prompt' ? 'block' : 'none';
+            btnCancel.style.display = (type === 'confirm' || type === 'prompt') ? 'block' : 'none';
+
+            const newBtnConfirm = btnConfirm.cloneNode(true);
+            btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+            const newBtnCancel = btnCancel.cloneNode(true);
+            btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+            newBtnCancel.onclick = () => {
+                modal.style.display = 'none';
+                if (type === 'prompt') callback(null);
+                else if (type === 'confirm') callback(false);
+            };
+
+            newBtnConfirm.onclick = () => {
+                modal.style.display = 'none';
+                if (type === 'prompt') callback(inputEl.value);
+                else if (type === 'confirm') callback(true);
+                else if (type === 'alert' && callback) callback();
+            };
+
+            modal.style.display = 'flex';
+            if (type === 'prompt') inputEl.focus();
+        };
+
+        // --- LOGIN ---
+        window.checkPassword = function() {
+            const pass = document.getElementById('password').value;
+            if (pass === '1402') { 
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-screen').style.display = 'flex';
+                calcularEAtualizarTela(); // Atualiza a tela de imediato
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+                setTimeout(() => { document.getElementById('error-msg').style.display = 'none'; }, 3000);
+            }
+        };
+
+        document.getElementById("password").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                window.checkPassword();
+            }
+        });
+
+        // --- NAVEGAÇÃO DE ABAS ---
+        window.mudarAba = function(aba) {
+            document.getElementById('tab-diario').classList.remove('active');
+            document.getElementById('tab-mensal').classList.remove('active');
+            document.getElementById('tab-historico').classList.remove('active');
+            
+            document.getElementById('btn-tab-diario').classList.remove('active');
+            document.getElementById('btn-tab-mensal').classList.remove('active');
+            document.getElementById('btn-tab-historico').classList.remove('active');
+
+            document.getElementById(`tab-${aba}`).classList.add('active');
+            document.getElementById(`btn-tab-${aba}`).classList.add('active');
+        };
+
+        // --- UTILITÁRIOS ---
+        function getVal(id) {
+            const valStr = document.getElementById(id).value;
+            if(!valStr) return 0;
+            const val = parseFloat(valStr.replace(',', '.'));
+            return isNaN(val) ? 0 : val;
+        }
+
+        function formatMoney(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function getDataAtual() {
+            const data = new Date();
+            return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth()+1).toString().padStart(2, '0')}`;
+        }
+
+        // --- GASTOS DIÁRIOS ---
+        window.toggleCategoria = function() {
+            const select = document.getElementById('categoriaGasto');
+            const inputOutros = document.getElementById('descGastoOutros');
+            if (select.value === 'Outros') {
+                inputOutros.style.display = 'block';
+                inputOutros.focus();
+            } else {
+                inputOutros.style.display = 'none';
+                inputOutros.value = '';
+            }
+        };
+
+        window.adicionarGastoDiario = function() {
+            const selectCat = document.getElementById('categoriaGasto');
+            const categoria = selectCat.value;
+            let desc = categoria;
+
+            if (!categoria) {
+                window.showModal("Atenção", "Por favor, selecione uma categoria na lista.");
+                return;
+            }
+
+            if (categoria === 'Outros') {
+                const descOutros = document.getElementById('descGastoOutros').value.trim();
+                desc = descOutros ? `Outros (${descOutros})` : 'Outros';
+            }
+
+            const formaPag = document.getElementById('formaPagamento').value;
+            if (!formaPag) {
+                window.showModal("Atenção", "Por favor, selecione a forma de pagamento.");
+                return;
+            }
+
+            const valorInput = document.getElementById('valorGasto').value.replace(',', '.');
+            const valor = parseFloat(valorInput);
+
+            if (isNaN(valor) || valor <= 0) {
+                window.showModal("Atenção", "Por favor, preencha um valor válido.");
+                return;
+            }
+
+            const novoGasto = {
+                id: Date.now(),
+                categoria: categoria, 
+                desc: desc,           
+                valor: valor,
+                pagamento: formaPag,
+                data: getDataAtual()
+            };
+
+            gastosDiarios.push(novoGasto);
+            
+            // Limpa os campos
+            selectCat.value = '';
+            window.toggleCategoria();
+            document.getElementById('formaPagamento').value = '';
+            document.getElementById('valorGasto').value = '';
+
+            window.handleUserChange();
+        };
+
+        window.removerGasto = function(id) {
+            gastosDiarios = gastosDiarios.filter(gasto => gasto.id !== id);
+            window.handleUserChange();
+        };
+
+        function renderizarListaGastos() {
+            const listaEl = document.getElementById('listaGastos');
+            const msgVazio = document.getElementById('msgVazio');
+            listaEl.innerHTML = '';
+
+            if (gastosDiarios.length === 0) {
+                msgVazio.style.display = 'block';
+            } else {
+                msgVazio.style.display = 'none';
+                const gastosInvertidos = [...gastosDiarios].reverse();
+
+                gastosInvertidos.forEach(gasto => {
+                    const li = document.createElement('li');
+                    li.className = 'expense-item';
+                    li.innerHTML = `
+                        <div class="expense-info">
+                            <span class="expense-desc">${gasto.desc} <span class="badge-pag">${gasto.pagamento || 'Pix/Débito'}</span></span>
+                            <span class="expense-date">${gasto.data}</span>
+                        </div>
+                        <div class="expense-actions">
+                            <span class="expense-val">${formatMoney(gasto.valor)}</span>
+                            <button class="btn-del" onclick="removerGasto(${gasto.id})">✕</button>
+                        </div>
+                    `;
+                    listaEl.appendChild(li);
+                });
+            }
+        }
+
+        // --- CÁLCULOS PRINCIPAIS ---
+        window.calcularEAtualizarTela = function() {
+            const salario1 = getVal('salario1');
+            const salario2 = getVal('salario2');
+            const va = getVal('va');
+            const vr = getVal('vr');
+            const condominio = getVal('condominio');
+            const internet = getVal('internet');
+            const luz = getVal('luz');
+            const gas = getVal('gas');
+
+            const somaSalarios = salario1 + salario2;
+            const dizimo = somaSalarios * 0.10;
+
+            let totalDiarias = 0;
+            let totalDinheiro = 0;
+            let totalVA = 0;
+            let totalVR = 0;
+            const relatorio = {};
+
+            gastosDiarios.forEach(gasto => {
+                totalDiarias += gasto.valor;
+                
+                const pag = gasto.pagamento || 'Pix/Débito'; 
+                if (pag === 'VA') totalVA += gasto.valor;
+                else if (pag === 'VR') totalVR += gasto.valor;
+                else totalDinheiro += gasto.valor; 
+
+                const cat = gasto.categoria || 'Sem Categoria/Antigos';
+                if (!relatorio[cat]) relatorio[cat] = 0;
+                relatorio[cat] += gasto.valor;
+            });
+
+            const totalGanhos = somaSalarios + va + vr;
+            const totalFixas = condominio + internet + luz + gas;
+            
+            const saldoDinheiro = somaSalarios - (totalFixas + dizimo + totalDinheiro);
+            const saldoVA = va - totalVA;
+            const saldoVR = vr - totalVR;
+            const saldoTotalGlobal = saldoDinheiro + saldoVA + saldoVR;
+
+            saldoAtualGlobal = saldoTotalGlobal;
+
+            // DOM Updates Mensal
+            document.getElementById('res-ganhos').innerText = formatMoney(totalGanhos);
+            document.getElementById('res-dizimo').innerText = formatMoney(dizimo);
+            document.getElementById('res-fixas').innerText = formatMoney(totalFixas);
+            document.getElementById('res-diarios').innerText = formatMoney(totalDiarias);
+            
+            const saldoEl = document.getElementById('res-saldo');
+            saldoEl.innerText = formatMoney(saldoTotalGlobal);
+            saldoEl.className = saldoTotalGlobal >= 0 ? 'text-success' : 'text-danger';
+
+            const relatorioEl = document.getElementById('relatorioCategorias');
+            relatorioEl.innerHTML = '';
+            if (Object.keys(relatorio).length === 0) {
+                relatorioEl.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 10px;">Nenhum gasto registrado ainda.</div>';
+            } else {
+                const categoriasOrdenadas = Object.entries(relatorio).sort((a, b) => b[1] - a[1]);
+                categoriasOrdenadas.forEach(([cat, val]) => {
+                    relatorioEl.innerHTML += `
+                        <div class="result-row">
+                            <span style="font-weight: 500;">${cat}</span>
+                            <span class="text-danger">${formatMoney(val)}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // DOM Updates Diário
+            const miniSaldoEl = document.getElementById('mini-saldo');
+            miniSaldoEl.innerText = formatMoney(saldoTotalGlobal);
+            document.getElementById('mini-saldo-card').style.backgroundColor = saldoTotalGlobal >= 0 ? 'var(--primary)' : 'var(--danger)';
+            
+            document.getElementById('mini-saldo-dinheiro').innerText = formatMoney(saldoDinheiro);
+            document.getElementById('mini-saldo-va').innerText = formatMoney(saldoVA);
+            document.getElementById('mini-saldo-vr').innerText = formatMoney(saldoVR);
+
+            renderizarListaGastos();
+            renderizarHistorico();
+
+            // Retorna Objeto de Estado para salvar no Banco
+            return {
+                fixos: { salario1, salario2, va, vr, condominio, internet, luz, gas },
+                diarios: gastosDiarios,
+                historico: historicoMeses
+            };
+        };
+
+        // --- HISTÓRICO ---
+        window.fecharMes = function() {
+            window.showModal("Fechar Mês", "Digite o nome do mês/ano que está fechando (ex: Janeiro/2026):", "prompt", (nomeMes) => {
+                if (!nomeMes) return;
+
+                const novoHistorico = {
+                    id: Date.now(),
+                    nome: nomeMes,
+                    saldo: saldoAtualGlobal
+                };
+
+                historicoMeses.push(novoHistorico);
+                
+                window.showModal("Sucesso!", `Saldo de ${formatMoney(saldoAtualGlobal)} salvo em "${nomeMes}"!\n\nDeseja zerar os dados de ganhos e gastos atuais para começar o próximo mês em branco?`, "confirm", (querZerar) => {
+                    if (querZerar) {
+                        const inputs = document.querySelectorAll('input[type="number"]');
+                        inputs.forEach(input => input.value = '');
+                        gastosDiarios = [];
+                        window.mudarAba('diario');
+                        window.scrollTo(0, 0);
+                    }
+                    window.handleUserChange();
+                });
+            });
+        };
+
+        window.removerHistorico = function(id) {
+            window.showModal("Apagar Registro", "Tem certeza que deseja apagar o registro desse mês?", "confirm", (sim) => {
+                if (sim) {
+                    historicoMeses = historicoMeses.filter(h => h.id !== id);
+                    window.handleUserChange();
+                }
+            });
+        };
+
+        function renderizarHistorico() {
+            const listaEl = document.getElementById('listaHistorico');
+            const msgVazio = document.getElementById('msgHistoricoVazio');
+            listaEl.innerHTML = '';
+
+            if (historicoMeses.length === 0) {
+                msgVazio.style.display = 'block';
+            } else {
+                msgVazio.style.display = 'none';
+                const historicoInvertido = [...historicoMeses].reverse();
+
+                historicoInvertido.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'expense-item';
+                    li.innerHTML = `
+                        <div class="expense-info">
+                            <span class="expense-desc">${item.nome}</span>
+                        </div>
+                        <div class="expense-actions">
+                            <span class="expense-val ${item.saldo >= 0 ? 'text-success' : 'text-danger'}">${formatMoney(item.saldo)}</span>
+                            <button class="btn-del" onclick="removerHistorico(${item.id})">✕</button>
+                        </div>
+                    `;
+                    listaEl.appendChild(li);
+                });
+            }
+        }
+
+        // --- RESET ---
+        window.limparTudo = function() {
+            window.showModal("Zerar Tudo", "ATENÇÃO: Isso apagará todas as contas fixas e todo o histórico de gastos diários da nuvem. Continuar?", "confirm", (sim) => {
+                if (sim) {
+                    const inputs = document.querySelectorAll('input[type="number"]');
+                    inputs.forEach(input => input.value = '');
+                    gastosDiarios = [];
+                    window.handleUserChange();
+                    window.mudarAba('mensal');
+                    window.scrollTo(0, 0);
+                }
+            });
+        };
+    </script>
+</body>
+</html>
