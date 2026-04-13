@@ -93,7 +93,7 @@
             display: none;
             flex: 1;
             overflow-y: auto;
-            padding: 20px 20px 100px 20px; /* Espaço extra no fim para a barra não cobrir */
+            padding: 20px 20px 100px 20px;
         }
         .tab-content.active { display: block; }
 
@@ -290,9 +290,9 @@
         <!-- TELA DE LOGIN -->
         <div id="login-screen">
             <h1>Minhas Finanças</h1>
-            <p>Digite sua senha compartilhada</p>
+            <p>Digite a senha compartilhada</p>
             <input type="password" id="password" placeholder="Senha" inputmode="numeric">
-            <button class="btn" onclick="checkPassword()">Acessar Nuvem</button>
+            <button class="btn" onclick="checkPassword()">Acessar App</button>
             <p id="error-msg" style="color: var(--danger); display: none; margin-top:15px; font-weight: 600;">Senha incorreta!</p>
         </div>
 
@@ -363,7 +363,6 @@
                 <div class="card">
                     <div class="input-group">
                         <label>Meu Salário</label>
-                        <!-- Usamos oninput para calcular na hora sem salvar, e onchange para salvar na nuvem ao sair do campo -->
                         <input type="number" id="salario1" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()">
                     </div>
                     <div class="input-group">
@@ -480,61 +479,43 @@
     <!-- SCRIPT COM FIREBASE / BANCO DE DADOS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis de ambiente garantidas na compilação
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // =========================================================================
+        // SUAS CHAVES DO FIREBASE CONFIGURADAS COM SUCESSO!
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBaeXUTPshTHhq94_1bdkdea_ehrLpiKw8",
+            authDomain: "contas-f6825.firebaseapp.com",
+            projectId: "contas-f6825",
+            storageBucket: "contas-f6825.firebasestorage.app",
+            messagingSenderId: "588940873527",
+            appId: "1:588940873527:web:6f5a0e0b2ddb397dd754b2"
+        };
+        // =========================================================================
 
-        let app, auth, db;
-        if (firebaseConfig) {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
+        } catch(e) {
+            console.error("Firebase não configurado ou chave inválida:", e);
         }
 
         // --- SISTEMA DE DADOS DA APLICAÇÃO ---
         let gastosDiarios = [];
         let historicoMeses = [];
         let saldoAtualGlobal = 0;
-        let currentUser = null;
         let isSyncingFromCloud = false;
-
-        // Inicia Autenticação Firebase
-        const initAuth = async () => {
-            if (!auth) return;
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Erro de Auth:", error);
-            }
-        };
-
-        initAuth();
-
-        // Escuta Mudanças na Autenticação e Configura Banco de Dados
-        if (auth) {
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    iniciarSincronizacaoNuvem();
-                }
-            });
-        }
 
         // --- INTEGRAÇÃO COM BANCO DE DADOS (FIRESTORE) ---
         function getDocRef() {
-            // Usando um documento específico para os dados compartilhados desta família
-            return doc(db, 'artifacts', appId, 'public', 'data', 'financas_app_state', 'shared_data');
+            // Caminho simples e direto na sua base de dados
+            return doc(db, 'minhas_financas', 'dados_familia');
         }
 
-        function iniciarSincronizacaoNuvem() {
-            if (!db || !currentUser) return;
+        window.iniciarSincronizacaoNuvem = function() {
+            if (!db) return;
             
             const docRef = getDocRef();
             onSnapshot(docRef, (snapshot) => {
@@ -557,7 +538,6 @@
         // --- APLICAR DADOS QUE VIERAM DO CELULAR DO PARCEIRO ---
         function setInputSeNaoEstiverFocado(id, val) {
             const el = document.getElementById(id);
-            // Só muda o texto se o usuário não estiver com o cursor piscando nele agora
             if (document.activeElement !== el) {
                 el.value = val !== undefined && val !== 0 ? val : '';
             }
@@ -583,7 +563,6 @@
             gastosDiarios = parse.diarios || [];
             historicoMeses = parse.historico || [];
 
-            // Recalcula tudo sem enviar de volta pra nuvem
             calcularEAtualizarTela(); 
         }
 
@@ -591,7 +570,7 @@
         window.handleUserChange = function() {
             const dadosSalvos = calcularEAtualizarTela();
             
-            if (!isSyncingFromCloud && currentUser && db) {
+            if (!isSyncingFromCloud && db) {
                 const syncIcon = document.getElementById('sync-status');
                 syncIcon.innerText = "☁️ Salvando...";
                 syncIcon.style.color = "rgba(255,255,255,0.7)";
@@ -648,7 +627,8 @@
             if (pass === '1402') { 
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-screen').style.display = 'flex';
-                calcularEAtualizarTela(); // Atualiza a tela de imediato
+                calcularEAtualizarTela();
+                iniciarSincronizacaoNuvem(); // Conecta à nuvem só depois de acertar a senha!
             } else {
                 document.getElementById('error-msg').style.display = 'block';
                 setTimeout(() => { document.getElementById('error-msg').style.display = 'none'; }, 3000);
