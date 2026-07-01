@@ -424,7 +424,7 @@
                         <option value="VR">🍔 Vale Refeição (VR)</option>
                     </select>
 
-                    <input type="number" id="valorGasto" placeholder="Valor (R$)" inputmode="decimal">
+                    <input type="text" class="money" id="valorGasto" placeholder="Valor (R$)" inputmode="decimal">
                     <button class="btn" style="max-width:none;" onclick="adicionarGastoDiario()">Adicionar gasto</button>
                 </div>
 
@@ -441,18 +441,38 @@
             <div id="tab-mensal" class="tab-content">
                 <div class="header-top" style="margin-top:6px;"><h2>Rendimentos do mês</h2></div>
                 <div class="card">
-                    <div class="input-group"><label>💼 Meu salário</label><input type="number" id="salario1" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
-                    <div class="input-group"><label>💼 Salário esposa</label><input type="number" id="salario2" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
-                    <div class="input-group"><label>🛒 Vale Alimentação</label><input type="number" id="va" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
-                    <div class="input-group"><label>🍔 Vale Refeição</label><input type="number" id="vr" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>💼 Meu salário</label><input type="text" inputmode="decimal" class="money" id="salario1" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>💼 Salário esposa</label><input type="text" inputmode="decimal" class="money" id="salario2" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>🛒 Vale Alimentação</label><input type="text" inputmode="decimal" class="money" id="va" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>🍔 Vale Refeição</label><input type="text" inputmode="decimal" class="money" id="vr" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
                 </div>
 
                 <div class="header-top"><h2>Despesas fixas</h2></div>
                 <div class="card">
-                    <div class="input-group"><label>🏢 Condomínio</label><input type="number" id="condominio" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
-                    <div class="input-group"><label>🌐 Internet</label><input type="number" id="internet" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
-                    <div class="input-group"><label>💡 Luz</label><input type="number" id="luz" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
-                    <div class="input-group"><label>🔥 Gás</label><input type="number" id="gas" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>🏢 Condomínio</label><input type="text" inputmode="decimal" class="money" id="condominio" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>🌐 Internet</label><input type="text" inputmode="decimal" class="money" id="internet" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>💡 Luz</label><input type="text" inputmode="decimal" class="money" id="luz" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                    <div class="input-group"><label>🔥 Gás</label><input type="text" inputmode="decimal" class="money" id="gas" placeholder="0,00" oninput="calcularEAtualizarTela()" onchange="handleUserChange()"></div>
+                </div>
+
+                <div class="header-top"><h2>Assinaturas e mensalidades</h2></div>
+                <div class="card add-expense-box">
+                    <input type="text" id="nomeMensalidade" placeholder="Nome (ex: Pilates, Spotify, Tênis...)">
+                    <select id="freqMensalidade">
+                        <option value="mensal" selected>🔁 Mensal (1x no mês)</option>
+                        <option value="quinzenal">📅 Quinzenal (2x no mês)</option>
+                    </select>
+                    <input type="text" class="money" id="valorMensalidade" placeholder="Valor (R$)" inputmode="decimal">
+                    <button class="btn" style="max-width:none;" onclick="adicionarMensalidade()">Adicionar mensalidade</button>
+                </div>
+                <div class="card">
+                    <ul class="expense-list" id="listaMensalidades"></ul>
+                    <div id="msgMensalidadeVazio" class="empty-state" style="display:none;">
+                        <span class="emoji">🔁</span>Nenhuma mensalidade cadastrada.
+                    </div>
+                    <div class="result-row bold" id="rowTotalMensalidades" style="display:none;">
+                        <span>Total no mês</span><span id="totalMensalidadesTxt" class="text-danger">R$ 0,00</span>
+                    </div>
                 </div>
 
                 <div class="header-top"><h2>Gastos por categoria</h2></div>
@@ -465,6 +485,7 @@
                     <div class="result-row"><span>Ganhos totais</span><span id="res-ganhos" class="text-success">R$ 0,00</span></div>
                     <div class="result-row"><span>Dízimo (10% salários)</span><span id="res-dizimo" class="text-primary">R$ 0,00</span></div>
                     <div class="result-row"><span>Contas fixas</span><span id="res-fixas">R$ 0,00</span></div>
+                    <div class="result-row"><span>Mensalidades</span><span id="res-mensalidades">R$ 0,00</span></div>
                     <div class="result-row"><span>Gastos diários</span><span id="res-diarios">R$ 0,00</span></div>
                     <div class="result-row bold"><span>Saldo final</span><span id="res-saldo">R$ 0,00</span></div>
                 </div>
@@ -549,6 +570,7 @@
         // --- ESTADO ---
         let gastosDiarios = [];
         let historicoMeses = [];
+        let mensalidades = [];
         let saldoAtualGlobal = 0;
         let isSyncingFromCloud = false;
         let syncIniciada = false;
@@ -575,7 +597,7 @@
         function setInputSeNaoEstiverFocado(id, val) {
             const el = document.getElementById(id);
             if (document.activeElement !== el) {
-                el.value = val !== undefined && val !== 0 ? val : '';
+                el.value = (val !== undefined && val !== 0) ? formatBRL(val) : '';
             }
         }
 
@@ -591,12 +613,13 @@
                 setInputSeNaoEstiverFocado('luz', f.luz);
                 setInputSeNaoEstiverFocado('gas', f.gas);
             } else {
-                document.querySelectorAll('#tab-mensal input[type="number"]').forEach(i => {
+                document.querySelectorAll('#tab-mensal .money').forEach(i => {
                     if (document.activeElement !== i) i.value = '';
                 });
             }
             gastosDiarios = parse.diarios || [];
             historicoMeses = parse.historico || [];
+            mensalidades = parse.mensalidades || [];
             calcularEAtualizarTela();
         }
 
@@ -709,6 +732,21 @@
             if (event.key === "Enter") { event.preventDefault(); window.fazerLogin(); }
         });
 
+        // Campos de valor: aceita vírgula e formata como 10.000,00 ao sair do campo
+        document.querySelectorAll('.money').forEach(el => {
+            el.addEventListener('input', () => {
+                el.value = el.value.replace(/[^\d.,]/g, ''); // só números, ponto e vírgula
+            });
+            el.addEventListener('focus', () => {
+                const n = parseValorBR(el.value);
+                el.value = n ? String(n).replace('.', ',') : ''; // ao editar, mostra sem milhar
+            });
+            el.addEventListener('blur', () => {
+                const n = parseValorBR(el.value);
+                el.value = n ? formatBRL(n) : ''; // ao sair, formata 10.000,00
+            });
+        });
+
         // --- ABAS ---
         window.mudarAba = function(aba) {
             ['diario','mensal','historico'].forEach(a => {
@@ -721,13 +759,28 @@
 
         // --- UTILITÁRIOS ---
         function getVal(id) {
-            const valStr = document.getElementById(id).value;
-            if(!valStr) return 0;
-            const val = parseFloat(valStr.replace(',', '.'));
-            return isNaN(val) ? 0 : val;
+            return parseValorBR(document.getElementById(id).value);
         }
         function formatMoney(value) {
             return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+        // Número -> "10.000,00"
+        function formatBRL(n) {
+            return (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        // Texto "10.000,00" ou "10000,5" -> número (10000 / 10000.5)
+        function parseValorBR(str) {
+            if (str === undefined || str === null) return 0;
+            let s = String(str).replace(/[^\d.,]/g, '');
+            if (s === '') return 0;
+            if (s.indexOf(',') !== -1) {
+                s = s.replace(/\./g, '').replace(',', '.');   // vírgula = centavos
+            } else {
+                const p = s.split('.');
+                s = (p.length === 2 && p[1].length <= 2) ? p.join('.') : p.join(''); // ponto vira milhar
+            }
+            const n = parseFloat(s);
+            return isNaN(n) ? 0 : n;
         }
         function getDataAtual() {
             const data = new Date();
@@ -755,7 +808,7 @@
             const formaPag = document.getElementById('formaPagamento').value;
             if (!formaPag) { window.showModal("Atenção", "Por favor, selecione a forma de pagamento."); return; }
 
-            const valor = parseFloat(document.getElementById('valorGasto').value.replace(',', '.'));
+            const valor = parseValorBR(document.getElementById('valorGasto').value);
             if (isNaN(valor) || valor <= 0) { window.showModal("Atenção", "Por favor, preencha um valor válido."); return; }
 
             gastosDiarios.push({ id: Date.now(), categoria, desc, valor, pagamento: formaPag, data: getDataAtual() });
@@ -801,6 +854,71 @@
             });
         }
 
+        // --- MENSALIDADES / ASSINATURAS ---
+        function multiplicadorFreq(freq) { return freq === 'quinzenal' ? 2 : 1; }
+
+        window.adicionarMensalidade = function() {
+            const nome = document.getElementById('nomeMensalidade').value.trim();
+            const freq = document.getElementById('freqMensalidade').value || 'mensal';
+            const valor = parseValorBR(document.getElementById('valorMensalidade').value);
+
+            if (!nome) { window.showModal("Atenção", "Dê um nome pra mensalidade (ex: Spotify, Pilates)."); return; }
+            if (valor <= 0) { window.showModal("Atenção", "Preencha um valor válido."); return; }
+
+            mensalidades.push({ id: Date.now(), nome, valor, freq });
+
+            document.getElementById('nomeMensalidade').value = '';
+            document.getElementById('freqMensalidade').value = 'mensal';
+            document.getElementById('valorMensalidade').value = '';
+            window.handleUserChange();
+        };
+
+        window.removerMensalidade = function(id) {
+            const m = mensalidades.find(x => x.id === id);
+            window.showModal("Apagar mensalidade", `Remover "${m ? m.nome : ''}"?`, "confirm", (sim) => {
+                if (sim) { mensalidades = mensalidades.filter(x => x.id !== id); window.handleUserChange(); }
+            });
+        };
+
+        function renderizarMensalidades() {
+            const listaEl = document.getElementById('listaMensalidades');
+            const msgVazio = document.getElementById('msgMensalidadeVazio');
+            const rowTotal = document.getElementById('rowTotalMensalidades');
+            listaEl.innerHTML = '';
+
+            if (mensalidades.length === 0) {
+                msgVazio.style.display = 'block';
+                rowTotal.style.display = 'none';
+                return;
+            }
+            msgVazio.style.display = 'none';
+            rowTotal.style.display = 'flex';
+
+            let total = 0;
+            mensalidades.forEach(m => {
+                const mult = multiplicadorFreq(m.freq);
+                const totalItem = (m.valor || 0) * mult;
+                total += totalItem;
+                const badge = m.freq === 'quinzenal' ? ` <span class="badge-pag">Quinzenal · 2x</span>` : '';
+                const li = document.createElement('li');
+                li.className = 'expense-item';
+                li.innerHTML = `
+                    <div class="expense-left">
+                        <div class="cat-icon" style="background:rgba(10,132,255,0.16)">🔁</div>
+                        <div class="expense-info">
+                            <span class="expense-desc">${m.nome}${badge}</span>
+                            <span class="expense-meta">${formatMoney(m.valor)}${mult > 1 ? ` × ${mult} no mês` : ''}</span>
+                        </div>
+                    </div>
+                    <div class="expense-actions">
+                        <span class="expense-val">${formatMoney(totalItem)}</span>
+                        <button class="btn-del" onclick="removerMensalidade(${m.id})">✕</button>
+                    </div>`;
+                listaEl.appendChild(li);
+            });
+            document.getElementById('totalMensalidadesTxt').innerText = formatMoney(total);
+        }
+
         // --- CÁLCULOS ---
         window.calcularEAtualizarTela = function() {
             const salario1 = getVal('salario1'), salario2 = getVal('salario2');
@@ -824,7 +942,9 @@
 
             const totalGanhos = somaSalarios + va + vr;
             const totalFixas = condominio + internet + luz + gas;
-            const saldoDinheiro = somaSalarios - (totalFixas + dizimo + totalDinheiro);
+            let totalMensalidades = 0;
+            mensalidades.forEach(m => { totalMensalidades += (m.valor || 0) * multiplicadorFreq(m.freq); });
+            const saldoDinheiro = somaSalarios - (totalFixas + totalMensalidades + dizimo + totalDinheiro);
             const saldoVA = va - totalVA;
             const saldoVR = vr - totalVR;
             const saldoTotalGlobal = saldoDinheiro + saldoVA + saldoVR;
@@ -834,6 +954,7 @@
             document.getElementById('res-ganhos').innerText = formatMoney(totalGanhos);
             document.getElementById('res-dizimo').innerText = formatMoney(dizimo);
             document.getElementById('res-fixas').innerText = formatMoney(totalFixas);
+            document.getElementById('res-mensalidades').innerText = formatMoney(totalMensalidades);
             document.getElementById('res-diarios').innerText = formatMoney(totalDiarias);
             const saldoEl = document.getElementById('res-saldo');
             saldoEl.innerText = formatMoney(saldoTotalGlobal);
@@ -870,8 +991,9 @@
 
             renderizarListaGastos();
             renderizarHistorico();
+            renderizarMensalidades();
 
-            return { fixos: { salario1, salario2, va, vr, condominio, internet, luz, gas }, diarios: gastosDiarios, historico: historicoMeses };
+            return { fixos: { salario1, salario2, va, vr, condominio, internet, luz, gas }, diarios: gastosDiarios, historico: historicoMeses, mensalidades: mensalidades };
         };
 
         // --- HISTÓRICO ---
@@ -881,7 +1003,7 @@
                 historicoMeses.push({ id: Date.now(), nome: nomeMes, saldo: saldoAtualGlobal });
                 window.showModal("Sucesso!", `Saldo de ${formatMoney(saldoAtualGlobal)} salvo em "${nomeMes}"!\n\nDeseja zerar os ganhos e gastos atuais para começar o próximo mês em branco?`, "confirm", (querZerar) => {
                     if (querZerar) {
-                        document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+                        document.querySelectorAll('.money').forEach(input => input.value = '');
                         gastosDiarios = [];
                         window.mudarAba('diario');
                         window.scrollTo(0, 0);
@@ -923,8 +1045,9 @@
         window.limparTudo = function() {
             window.showModal("Zerar tudo", "ATENÇÃO: Isso apagará todas as contas fixas e todo o histórico de gastos diários da nuvem. Continuar?", "confirm", (sim) => {
                 if (sim) {
-                    document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+                    document.querySelectorAll('.money').forEach(input => input.value = '');
                     gastosDiarios = [];
+                    mensalidades = [];
                     window.handleUserChange();
                     window.mudarAba('mensal');
                     window.scrollTo(0, 0);
